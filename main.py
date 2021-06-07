@@ -4,7 +4,7 @@ from discord.ext import commands
 
 client = commands.Bot(command_prefix='.')
 token = os.getenv("DISCORD_BOT_TOKEN")
-destFolder = "D:\\Images\\Printemps 2021\\"
+destFolder = os.getenv("DEST_FOLDER")
 
 
 @client.event
@@ -26,16 +26,15 @@ async def save(ctx, *, animeName):
         imageName = animeName + " - " + str(count).zfill(3) + ".png"
         await ctx.message.attachments[0].save(destFolder + imageName)
         print('Image sauvegardée: ' + imageName)
-        await ctx.send("Image bien sauvegardée dans : " + destFolder + " !")
+        await ctx.send("Image bien sauvegardée dans : " + destFolder + imageName + " !")
     except IndexError:
         print("Pas d'image attachée au message")
         await ctx.send("Pas d'image attachée au message!")
 
 
 @client.command()
-async def count(ctx):
-    count = 1
-    await ctx.send(count)
+async def test(ctx):
+    await ctx.send("TEST !!")
 
 
 client.run(token)
