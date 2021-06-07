@@ -3,8 +3,8 @@ import os
 from discord.ext import commands
 
 client = commands.Bot(command_prefix='.')
-token = os.getenv("DISCORD_BOT_TOKEN")
-destFolder = os.getenv("DEST_FOLDER")
+token = "ODUxMTI4MzI4MTM5MTc4MDY1.YLzxBg.DjvTZd3AFj5SZHTyPBmijH7UYws"
+destFolder = "D:\\Images\\Printemps 2021\\"
 
 
 @client.event
