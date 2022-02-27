@@ -1,0 +1,1 @@
+CreateObject("Wscript.shell").Run "D:\Projets\sauvegardeImages\lunch.bat", 0, True
