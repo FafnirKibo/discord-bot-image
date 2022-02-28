@@ -103,18 +103,80 @@ async def dl(ctx, animeName, nbImage):
 
 
 @client.command()
-async def send(ctx, userID, animeName, nb):
+async def send(ctx, userID, animeName, nbImage):
+    destination = destFolder + animeName + '\\'
     user = client.get_user(userID) or await client.fetch_user(userID)
-    await user.send(file=discord.File(destFolder + 'Gintama - 001.png'))
 
-    imageName = destFolder + animeName + ' - ' + str(nb).zfill(3) + ".png"
-    if os.path.exists(destFolder + imageName):
-        os.remove(destFolder + imageName)
-        print('Image supprimée : ' + imageName)
-        await ctx.send("Image bien supprimée : " + destFolder + imageName + " !")
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        # Récupération de l'image
+        imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+        if os.path.exists(destination + imageName):
+            # Envoie de l'image
+            await user.send(animeName + " " + nbImage + " :")
+            await user.send(file=discord.File(destination + imageName))
+            await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
+        else:
+            await ctx.send("Il n'existe pas d'image " + nbImage + " pour l'anime : " + animeName)
     else:
-        print("Il existe aucune image pour l'anime : " + animeName)
-        await ctx.send("Il existe aucune image pour l'anime : " + animeName)
+        await alert(ctx, "Aucune image existe pour l'anime : " + animeName)
+
+
+@client.command()
+async def sendFrom(ctx, userID, animeName, nbImage):
+    destination = destFolder + animeName + '\\'
+    user = client.get_user(userID) or await client.fetch_user(userID)
+
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        # Récupération de l'image
+        imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+        if os.path.exists(destination + imageName):
+            # Envoie de l'image
+            await user.send(animeName + " depuis l'image " + nbImage + " :")
+            await user.send(file=discord.File(destination + imageName))
+            await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
+            # On continue à envoyer si il en reste
+            count = int(nbImage) + 1
+            imageName = animeName + " - " + str(count).zfill(3) + ".png"
+            while os.path.exists(destination + imageName):
+                await user.send(file=discord.File(destination + imageName))
+                await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
+                count += 1
+                imageName = animeName + " - " + str(count).zfill(3) + ".png"
+        else:
+            await ctx.send("Il n'existe pas d'image " + nbImage + " pour l'anime : " + animeName)
+    else:
+        await alert(ctx, "Aucune image existe pour l'anime : " + animeName)
+
+
+@client.command()
+async def sendFromTo(ctx, userID, animeName, nbImageFrom, nbImageTo):
+    destination = destFolder + animeName + '\\'
+    user = client.get_user(userID) or await client.fetch_user(userID)
+
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        # Récupération de l'image
+        imageName = animeName + " - " + str(nbImageFrom).zfill(3) + ".png"
+        if os.path.exists(destination + imageName):
+            # Envoie de l'image
+            await user.send(
+                animeName + " depuis l'image " + nbImageFrom + " à l'image " + nbImageTo + " (si elle existe) :")
+            await user.send(file=discord.File(destination + imageName))
+            await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
+            # On continue à envoyer si il en reste
+            count = int(nbImageFrom) + 1
+            imageName = animeName + " - " + str(count).zfill(3) + ".png"
+            while os.path.exists(destination + imageName) and count <= int(nbImageTo):
+                await user.send(file=discord.File(destination + imageName))
+                await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
+                count += 1
+                imageName = animeName + " - " + str(count).zfill(3) + ".png"
+        else:
+            await ctx.send("Il n'existe pas d'image " + nbImageFrom + " pour l'anime : " + animeName)
+    else:
+        await alert(ctx, "Aucune image existe pour l'anime : " + animeName)
 
 
 async def alert(ctx, msg):
