@@ -159,7 +159,6 @@ async def sendFrom(ctx, userID, animeName, nbImage):
                 imageName = animeName + " - " + str(count).zfill(3) + ".png"
             zipObj.close()
             await saveDropbox(ctx, archiveName, user)
-            os.remove(archiveName)
         else:
             await ctx.send("Il n'existe pas d'image " + nbImage + " pour l'anime : " + animeName)
     else:
