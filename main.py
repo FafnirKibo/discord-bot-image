@@ -1,17 +1,16 @@
 import os
-from os.path import basename
+import zipfile
 
 import discord
 from discord.ext import commands
-import zipfile
-# from win10toast import ToastNotifier
 
 import variable
 
+# from win10toast import ToastNotifier
+
 client = commands.Bot(command_prefix='.')
 token = variable.token
-# destFolder = "D:\\Images\\Screen_Anime\\"
-destFolder = "/home/mateohymonet/Images/Screen_Anime/"
+destFolder = variable.unixDest
 separator = "/"
 
 
