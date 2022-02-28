@@ -1,7 +1,9 @@
 import os
+import random
 import zipfile
 
 import discord
+import dropbox
 from discord.ext import commands
 
 import variable
@@ -10,8 +12,9 @@ import variable
 
 client = commands.Bot(command_prefix='.')
 token = variable.token
-destFolder = variable.unixDest
-separator = "/"
+destFolder = variable.winDest
+separator = "\\"
+dropboxToken = variable.dropboxToken
 
 
 # toast = ToastNotifier()
@@ -138,7 +141,7 @@ async def sendFrom(ctx, userID, animeName, nbImage):
         if os.path.exists(destination + imageName):
             # Création du ZIP
             archiveName = animeName + "_" + user.name + ".zip"
-            zipObj = zipfile.ZipFile(archiveName, 'w')
+            zipObj = zipfile.ZipFile(archiveName, 'w', zipfile.ZIP_DEFLATED)
             # Envoie de l'image
             await user.send(animeName + " depuis l'image " + nbImage + " :")
             await user.send(file=discord.File(destination + imageName))
@@ -155,8 +158,7 @@ async def sendFrom(ctx, userID, animeName, nbImage):
                 count += 1
                 imageName = animeName + " - " + str(count).zfill(3) + ".png"
             zipObj.close()
-            await user.send(file=discord.File(archiveName))
-            await alert(ctx, "Archive '" + archiveName + "' bien envoyée à " + user.name + " !")
+            await saveDropbox(ctx, archiveName, user)
             os.remove(archiveName)
         else:
             await ctx.send("Il n'existe pas d'image " + nbImage + " pour l'anime : " + animeName)
@@ -176,7 +178,7 @@ async def sendFromTo(ctx, userID, animeName, nbImageFrom, nbImageTo):
         if os.path.exists(destination + imageName):
             # Création du ZIP
             archiveName = animeName + "_" + user.name + ".zip"
-            zipObj = zipfile.ZipFile(archiveName, 'w')
+            zipObj = zipfile.ZipFile(archiveName, 'w', zipfile.ZIP_DEFLATED)
             # Envoie de l'image
             await user.send(
                 animeName + " depuis l'image " + nbImageFrom + " à l'image " + nbImageTo + " (si elle existe) :")
@@ -194,13 +196,22 @@ async def sendFromTo(ctx, userID, animeName, nbImageFrom, nbImageTo):
                 count += 1
                 imageName = animeName + " - " + str(count).zfill(3) + ".png"
             zipObj.close()
-            await user.send(file=discord.File(archiveName))
-            await alert(ctx, "Archive '" + archiveName + "' bien envoyée à " + user.name + " !")
-            os.remove(archiveName)
+            await saveDropbox(ctx, archiveName, user)
         else:
             await ctx.send("Il n'existe pas d'image " + nbImageFrom + " pour l'anime : " + animeName)
     else:
         await alert(ctx, "Aucune image existe pour l'anime : " + animeName)
+
+
+async def saveDropbox(ctx, file, user):
+    dbx = dropbox.Dropbox(oauth2_access_token=dropboxToken)
+    n = random.randint(0, 10000)
+    with open(file, 'rb') as f:
+        dbx.files_upload(f.read(), '/' + str(n) + '-' + file)
+    link = dbx.sharing_create_shared_link_with_settings('/' + str(n) + '-' + file)
+    await user.send("Archive des screens : " + str(link.url))
+    await alert(ctx, "Archive '" + file + "' bien envoyée à " + user.name + " !")
+    os.remove(file)
 
 
 async def alert(ctx, msg):
