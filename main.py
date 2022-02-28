@@ -1,19 +1,24 @@
 import os
+from os.path import basename
 
 import discord
 from discord.ext import commands
-from win10toast import ToastNotifier
+import zipfile
+# from win10toast import ToastNotifier
 
 import variable
 
 client = commands.Bot(command_prefix='.')
 token = variable.token
-destFolder = "D:\\Images\\Screen_Anime\\"
+# destFolder = "D:\\Images\\Screen_Anime\\"
+destFolder = "/home/mateohymonet/Images/Screen_Anime/"
+separator = "/"
 
-toast = ToastNotifier()
-toast.show_toast("Bot Image Sauvegarde", "Le programme a été lancé", duration=30)
 
-os.chdir("D:\Projets\sauvegardeImages")
+# toast = ToastNotifier()
+# toast.show_toast("Bot Image Sauvegarde", "Le programme a été lancé", duration=30)
+
+# os.chdir("D:\Projets\sauvegardeImages")
 
 
 @client.event
@@ -25,7 +30,7 @@ async def on_ready():
 @client.command()
 async def save(ctx, *, animeName):
     try:
-        destination = destFolder + animeName + '\\'
+        destination = destFolder + animeName + separator
 
         # Création du dossier de l'anime si besoin
         if not os.path.exists(destination):
@@ -59,7 +64,7 @@ async def dest(ctx):
 
 @client.command()
 async def dLast(ctx, *, animeName):
-    destination = destFolder + animeName + '\\'
+    destination = destFolder + animeName + separator
 
     # On regarde si une image existe pour l'anime
     if os.path.exists(destination):
@@ -77,7 +82,7 @@ async def dLast(ctx, *, animeName):
 
 @client.command()
 async def dl(ctx, animeName, nbImage):
-    destination = destFolder + animeName + '\\'
+    destination = destFolder + animeName + separator
 
     # On regarde si une image existe pour l'anime
     if os.path.exists(destination):
@@ -104,7 +109,7 @@ async def dl(ctx, animeName, nbImage):
 
 @client.command()
 async def send(ctx, userID, animeName, nbImage):
-    destination = destFolder + animeName + '\\'
+    destination = destFolder + animeName + separator
     user = client.get_user(userID) or await client.fetch_user(userID)
 
     # On regarde si une image existe pour l'anime
@@ -124,7 +129,7 @@ async def send(ctx, userID, animeName, nbImage):
 
 @client.command()
 async def sendFrom(ctx, userID, animeName, nbImage):
-    destination = destFolder + animeName + '\\'
+    destination = destFolder + animeName + separator
     user = client.get_user(userID) or await client.fetch_user(userID)
 
     # On regarde si une image existe pour l'anime
@@ -132,18 +137,28 @@ async def sendFrom(ctx, userID, animeName, nbImage):
         # Récupération de l'image
         imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
         if os.path.exists(destination + imageName):
+            # Création du ZIP
+            archiveName = animeName + "_" + user.name + ".zip"
+            zipObj = zipfile.ZipFile(archiveName, 'w')
             # Envoie de l'image
             await user.send(animeName + " depuis l'image " + nbImage + " :")
             await user.send(file=discord.File(destination + imageName))
+            zipObj.write(destination + imageName, arcname=imageName)
             await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
             # On continue à envoyer si il en reste
             count = int(nbImage) + 1
             imageName = animeName + " - " + str(count).zfill(3) + ".png"
             while os.path.exists(destination + imageName):
                 await user.send(file=discord.File(destination + imageName))
+                # Ajout de l'image à l'archive
+                zipObj.write(destination + imageName, arcname=imageName)
                 await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
                 count += 1
                 imageName = animeName + " - " + str(count).zfill(3) + ".png"
+            zipObj.close()
+            await user.send(file=discord.File(archiveName))
+            await alert(ctx, "Archive '" + archiveName + "' bien envoyée à " + user.name + " !")
+            os.remove(archiveName)
         else:
             await ctx.send("Il n'existe pas d'image " + nbImage + " pour l'anime : " + animeName)
     else:
@@ -152,7 +167,7 @@ async def sendFrom(ctx, userID, animeName, nbImage):
 
 @client.command()
 async def sendFromTo(ctx, userID, animeName, nbImageFrom, nbImageTo):
-    destination = destFolder + animeName + '\\'
+    destination = destFolder + animeName + separator
     user = client.get_user(userID) or await client.fetch_user(userID)
 
     # On regarde si une image existe pour l'anime
@@ -160,19 +175,29 @@ async def sendFromTo(ctx, userID, animeName, nbImageFrom, nbImageTo):
         # Récupération de l'image
         imageName = animeName + " - " + str(nbImageFrom).zfill(3) + ".png"
         if os.path.exists(destination + imageName):
+            # Création du ZIP
+            archiveName = animeName + "_" + user.name + ".zip"
+            zipObj = zipfile.ZipFile(archiveName, 'w')
             # Envoie de l'image
             await user.send(
                 animeName + " depuis l'image " + nbImageFrom + " à l'image " + nbImageTo + " (si elle existe) :")
             await user.send(file=discord.File(destination + imageName))
+            zipObj.write(destination + imageName, arcname=imageName)
             await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
             # On continue à envoyer si il en reste
             count = int(nbImageFrom) + 1
             imageName = animeName + " - " + str(count).zfill(3) + ".png"
             while os.path.exists(destination + imageName) and count <= int(nbImageTo):
                 await user.send(file=discord.File(destination + imageName))
+                # Ajout de l'image à l'archive
+                zipObj.write(destination + imageName, arcname=imageName)
                 await alert(ctx, "Image '" + imageName + "' bien envoyée à " + user.name + " !")
                 count += 1
                 imageName = animeName + " - " + str(count).zfill(3) + ".png"
+            zipObj.close()
+            await user.send(file=discord.File(archiveName))
+            await alert(ctx, "Archive '" + archiveName + "' bien envoyée à " + user.name + " !")
+            os.remove(archiveName)
         else:
             await ctx.send("Il n'existe pas d'image " + nbImageFrom + " pour l'anime : " + animeName)
     else:
