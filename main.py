@@ -55,8 +55,8 @@ async def save(ctx, *, animeName):
 
 
 @client.command()
-async def test(ctx):
-    await ctx.send("TEST !!")
+async def test(ctx, test1, test2):
+    await ctx.send("TEST !! Test 1 = " + test1 + " test 2 = " + test2)
 
 
 @client.command()
@@ -283,18 +283,65 @@ async def deleteDropbox(ctx):
     for file in files.entries:
         message = message + file.name + "\n"
         dbx.files_delete_v2(file.path_display)
+    if message == "":
+        message = "Aucune fichier sur le dropbox"
     embed = discord.Embed(title="Liste des fichiers supprimés", description=message, color=discord.Color.blue())
     await ctx.send(embed=embed)
 
 
 @client.command()
-async def move(ctx, ancientFolder, ancientName, newFolder, newName):
-    yes = 1
+async def move(ctx, ancientFolder, ancientName, animeName):
+    # L'ancien dossier et le nouveau
+    ancientDest = destFolder + ancientFolder + separator
+    newDest = destFolder + animeName + separator
+    # Titre pour le embed
+    title = "Déplacement de " + ancientDest + " dans " + newDest
+    # On regarde si l'ancien dossier existe au moins
+    if os.path.exists(ancientDest):
+        count = 1
+        imageName = ancientDest + ancientName + " - " + str(count).zfill(3) + ".png"
+        # On regarde s'il y a au moins une image dans l'ancien dossier
+        if os.path.exists(imageName):
+            newCount = 1
+            # On regarde si le nouveau dossier existe deja, sinon on le crée
+            if os.path.exists(newDest):
+                newCount = len([name for name in os.listdir(newDest)]) + 1
+                descriptionFolder = "Dossier " + animeName + " deja existant"
+            else:
+                os.makedirs(newDest)
+                descriptionFolder = "Création du dossier " + animeName
+            await sendEmbed(ctx, "Nouveau dossier " + animeName, descriptionFolder)
+
+            # On boucle sur les screen et on les déplace
+            while os.path.exists(imageName):
+                newName = newDest + animeName + " - " + str(int(newCount)).zfill(3) + ".png"
+                os.rename(imageName, newName)
+                count += 1
+                newCount += 1
+                imageName = ancientDest + ancientName + " - " + str(count).zfill(3) + ".png"
+
+            # Si après déplacement, l'ancien dossier ne contient plus rien, on le supprime
+            if len([name for name in os.listdir(ancientDest)]) == 0:
+                os.rmdir(ancientDest)
+                await sendEmbed(ctx, "Ancient dossier " + ancientFolder + "supprimé")
+            description = "Fin de déplacement des screen"
+
+        else:
+            description = "Aucun screen pour l'anime " + ancientName + " dans " + ancientFolder
+    else:
+        description = "Aucun dossier " + ancientFolder + " trouvé"
+    await sendEmbed(ctx, title, description)
 
 
 async def alert(ctx, msg):
     print(msg)
     await ctx.send(msg)
+
+
+async def sendEmbed(ctx, title, description):
+    print(description)
+    embed = discord.Embed(title=title, description=description, color=discord.Color.blue())
+    await ctx.send(embed=embed)
 
 
 client.run(token)
