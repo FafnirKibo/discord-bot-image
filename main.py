@@ -275,6 +275,21 @@ async def count(ctx, *, animeName):
     await ctx.send(embed=embed)
 
 
+@client.command()
+async def deleteDropbox(ctx):
+    message = ""
+    dbx = dropbox.Dropbox(oauth2_access_token=dropboxToken)
+    files = dbx.files_list_folder("")
+    for file in files.entries:
+        message = message + file.name + "\n"
+        dbx.files_delete_v2(file.path_display)
+    embed = discord.Embed(title="Liste des fichiers supprimés", description=message, color=discord.Color.blue())
+    await ctx.send(embed=embed)
+
+
+@client.command()
+async def move(ctx, ancientFolder, ancientName, newFolder, newName):
+    yes = 1
 
 
 async def alert(ctx, msg):
