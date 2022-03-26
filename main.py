@@ -110,7 +110,7 @@ async def dl(ctx, animeName, nbImage):
 
 
 @client.command()
-async def send(ctx, userID, animeName, nbImage):
+async def send(ctx, userID, nbImage, *, animeName):
     destination = destFolder + animeName + separator
     user = client.get_user(userID) or await client.fetch_user(userID)
 
@@ -130,7 +130,7 @@ async def send(ctx, userID, animeName, nbImage):
 
 
 @client.command()
-async def sendFrom(ctx, userID, animeName, nbImage):
+async def sendFrom(ctx, userID, nbImage, *, animeName):
     destination = destFolder + animeName + separator
     user = client.get_user(userID) or await client.fetch_user(userID)
 
@@ -166,7 +166,7 @@ async def sendFrom(ctx, userID, animeName, nbImage):
 
 
 @client.command()
-async def sendFromTo(ctx, userID, animeName, nbImageFrom, nbImageTo):
+async def sendFromTo(ctx, userID, nbImageFrom, nbImageTo, *, animeName):
     destination = destFolder + animeName + separator
     user = client.get_user(userID) or await client.fetch_user(userID)
 
@@ -211,6 +211,70 @@ async def saveDropbox(ctx, file, user):
     await user.send("Archive des screens : " + str(link.url))
     await alert(ctx, "Archive '" + file + "' bien envoyée à " + user.name + " !")
     os.remove(file)
+
+
+@client.command()
+async def show(ctx, nbImage, *, animeName):
+    destination = destFolder + animeName + separator
+
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        # Récupération de l'image
+        imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+        url = destination + imageName
+        if os.path.exists(url):
+            # Envoie du message avec l'image
+            file = discord.File(url)
+            embed = discord.Embed(title=imageName, color=discord.Color.blue())
+            embed.set_image(url="attachment://" + url)
+            await ctx.send(file=file, embed=embed)
+        else:
+            embed = discord.Embed(title="Pas de screen " + nbImage + " pour " + animeName, color=discord.Color.blue())
+            await ctx.send(embed=embed)
+    else:
+        embed = discord.Embed(title="Pas de screen pour " + animeName, color=discord.Color.blue())
+        await ctx.send(embed=embed)
+
+
+@client.command()
+async def search(ctx, *, animeName):
+    result = ""
+
+    for folderName in os.listdir(destFolder):
+        folder = os.path.join(destFolder, folderName)
+        if os.path.isdir(folder) and (animeName.lower() in folderName.lower()):
+            result = result + folderName + "\n"
+    if result == "":
+        result = "Aucun résultat trouvé"
+    embed = discord.Embed(title="Liste des résultats", description=result, color=discord.Color.blue())
+    await ctx.send(embed=embed)
+
+
+@client.command()
+async def searchAll(ctx):
+    result = ""
+
+    for folderName in os.listdir(destFolder):
+        folder = os.path.join(destFolder, folderName)
+        if os.path.isdir(folder):
+            result = result + folderName + "\n"
+    if result == "":
+        result = "Aucun résultat trouvé"
+    embed = discord.Embed(title="Tout les résultats", description=result, color=discord.Color.blue())
+    await ctx.send(embed=embed)
+
+
+@client.command()
+async def count(ctx, *, animeName):
+    destination = destFolder + animeName + separator
+    count = 0
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        count = len([name for name in os.listdir(destination)])
+    embed = discord.Embed(title="Nombre de screen pour " + animeName, description=count, color=discord.Color.blue())
+    await ctx.send(embed=embed)
+
+
 
 
 async def alert(ctx, msg):
