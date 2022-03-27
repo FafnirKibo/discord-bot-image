@@ -1,4 +1,5 @@
 import os
+import shutil
 import zipfile
 from random import randint
 
@@ -10,6 +11,7 @@ import variable
 
 client = commands.Bot(command_prefix='.')
 token = variable.token
+idBoss = variable.idBoss
 destFolder = variable.winDest
 separator = "\\"
 dropboxToken = variable.dropboxToken
@@ -99,6 +101,35 @@ async def dl(ctx, animeName, nbImage):
             await ctx.send("Il n'existe pas d'image " + nbImage + " pour l'anime : " + animeName)
     else:
         await alert(ctx, "Aucune image existe pour l'anime : " + animeName)
+
+
+@client.command()
+async def deleteAll(ctx, *, animeName):
+    if ctx.message.author.id == idBoss:
+        destination = destFolder + animeName + separator
+        # On regarde si une image existe pour l'anime
+        if os.path.exists(destination):
+            # message de confirmation
+            await sendEmbed(ctx, ":warning: ALERTE ALERTE ALERTE :warning:",
+                            "Etes-vous sûr de vouloir supprimé le dossier " + animeName + " ?")
+            msg = await client.wait_for('message', check=lambda
+                message: message.author == ctx.author and message.channel.id == ctx.channel.id)
+            yes = ["o", "oui", "y", "yes"]
+            no = ["n", "non", "no"]
+            if msg.content.lower() in yes:
+                # On supprime tout le dossier
+                shutil.rmtree(destination, ignore_errors=True)
+                await sendEmbed(ctx, "Tout supprimer pour " + animeName, "Dossier bien supprimé")
+            elif msg.content.lower() in no:
+                # On annule la suppression
+                await sendEmbed(ctx, "Tout supprimer pour " + animeName, "Suppression annulée")
+            else:
+                # On annule la suppression
+                await sendEmbed(ctx, "Tout supprimer pour " + animeName, "Réponse incorrect, suppression annulée")
+        else:
+            await sendEmbed(ctx, "Tout supprimer pour " + animeName, "Aucune dossier pour " + animeName)
+    else:
+        await sendEmbed(ctx, "Tout supprimer pour " + animeName, "Qu'est-ce que tu essaies de faire là frérot ?????")
 
 
 @client.command()
