@@ -1,6 +1,6 @@
 import os
-import random
 import zipfile
+from random import randint
 
 import discord
 import dropbox
@@ -8,19 +8,11 @@ from discord.ext import commands
 
 import variable
 
-# from win10toast import ToastNotifier
-
 client = commands.Bot(command_prefix='.')
 token = variable.token
 destFolder = variable.winDest
 separator = "\\"
 dropboxToken = variable.dropboxToken
-
-
-# toast = ToastNotifier()
-# toast.show_toast("Bot Image Sauvegarde", "Le programme a été lancé", duration=30)
-
-# os.chdir("D:\Projets\sauvegardeImages")
 
 
 @client.event
@@ -243,7 +235,8 @@ async def search(ctx, *, animeName):
     for folderName in os.listdir(destFolder):
         folder = os.path.join(destFolder, folderName)
         if os.path.isdir(folder) and (animeName.lower() in folderName.lower()):
-            result = result + folderName + "\n"
+            result = result + "-    " + folderName + " (" + str(
+                len([name for name in os.listdir(destFolder + folderName)])) + ")\n"
     if result == "":
         result = "Aucun résultat trouvé"
     embed = discord.Embed(title="Liste des résultats", description=result, color=discord.Color.blue())
@@ -253,11 +246,11 @@ async def search(ctx, *, animeName):
 @client.command()
 async def searchAll(ctx):
     result = ""
-
     for folderName in os.listdir(destFolder):
         folder = os.path.join(destFolder, folderName)
         if os.path.isdir(folder):
-            result = result + folderName + "\n"
+            result = result + "-    " + folderName + " (" + str(
+                len([name for name in os.listdir(destFolder + folderName)])) + ")\n"
     if result == "":
         result = "Aucun résultat trouvé"
     embed = discord.Embed(title="Tout les résultats", description=result, color=discord.Color.blue())
@@ -306,11 +299,14 @@ async def move(ctx, ancientFolder, ancientName, animeName):
             # On regarde si le nouveau dossier existe deja, sinon on le crée
             if os.path.exists(newDest):
                 newCount = len([name for name in os.listdir(newDest)]) + 1
-                descriptionFolder = "Dossier " + animeName + " deja existant"
+                await sendEmbed(ctx, "Nouveau dossier " + animeName, "Dossier deja existant")
             else:
-                os.makedirs(newDest)
-                descriptionFolder = "Création du dossier " + animeName
-            await sendEmbed(ctx, "Nouveau dossier " + animeName, descriptionFolder)
+                try:
+                    os.makedirs(newDest)
+                    await sendEmbed(ctx, "Nouveau dossier " + animeName, "Création du dossier " + animeName)
+                except:
+                    await sendEmbed(ctx, "Nouveau dossier " + animeName,
+                                    "Erreur lors de la création du dossier " + animeName)
 
             # On boucle sur les screen et on les déplace
             while os.path.exists(imageName):
@@ -323,7 +319,7 @@ async def move(ctx, ancientFolder, ancientName, animeName):
             # Si après déplacement, l'ancien dossier ne contient plus rien, on le supprime
             if len([name for name in os.listdir(ancientDest)]) == 0:
                 os.rmdir(ancientDest)
-                await sendEmbed(ctx, "Ancient dossier " + ancientFolder + "supprimé")
+                await sendEmbed(ctx, "Ancient dossier " + ancientFolder + " supprimé", "Plus aucun screen dedans")
             description = "Fin de déplacement des screen"
 
         else:
@@ -331,6 +327,53 @@ async def move(ctx, ancientFolder, ancientName, animeName):
     else:
         description = "Aucun dossier " + ancientFolder + " trouvé"
     await sendEmbed(ctx, title, description)
+
+
+@client.command()
+async def random(ctx, *, animeName):
+    destination = destFolder + animeName + separator
+
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        # On tire un numéro au hasard parmi les images disponibles
+        nbImage = randint(1, len([name for name in os.listdir(destination)]))
+        # Récupération de l'image
+        imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+        url = destination + imageName
+        # Envoie du message avec l'image
+        file = discord.File(url)
+        embed = discord.Embed(title=imageName, color=discord.Color.blue())
+        embed.set_image(url="attachment://" + url)
+        await ctx.send(file=file, embed=embed)
+
+    else:
+        embed = discord.Embed(title="Pas de screen pour " + animeName, color=discord.Color.blue())
+        await ctx.send(embed=embed)
+
+
+@client.command()
+async def fullRandom(ctx):
+    # On tire un numéro au hasard parmi les anime disponibles
+    nbAnime = randint(1, len([name for name in os.listdir(destFolder)]))
+    animeName = os.listdir(destFolder)[nbAnime]
+    destination = destFolder + animeName + separator
+
+    # On regarde si une image existe pour l'anime
+    if os.path.exists(destination):
+        # On tire un numéro au hasard parmi les images disponibles
+        nbImage = randint(1, len([name for name in os.listdir(destination)]))
+        # Récupération de l'image
+        imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+        url = destination + imageName
+        # Envoie du message avec l'image
+        file = discord.File(url)
+        embed = discord.Embed(title=imageName, color=discord.Color.blue())
+        embed.set_image(url="attachment://" + url)
+        await ctx.send(file=file, embed=embed)
+
+    else:
+        embed = discord.Embed(title="Pas de screen pour " + animeName, color=discord.Color.blue())
+        await ctx.send(embed=embed)
 
 
 async def alert(ctx, msg):
