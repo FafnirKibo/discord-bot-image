@@ -230,30 +230,41 @@ async def show(ctx, nbImage, *, animeName):
 
 @client.command()
 async def search(ctx, *, animeName):
+    nbFolder = 0
+    nbScreen = 0
     result = ""
-
     for folderName in os.listdir(destFolder):
         folder = os.path.join(destFolder, folderName)
         if os.path.isdir(folder) and (animeName.lower() in folderName.lower()):
+            nbFolder += 1
+            nbScreen += len([name for name in os.listdir(destFolder + folderName)])
             result = result + "-    " + folderName + " (" + str(
                 len([name for name in os.listdir(destFolder + folderName)])) + ")\n"
     if result == "":
         result = "Aucun résultat trouvé"
-    embed = discord.Embed(title="Liste des résultats", description=result, color=discord.Color.blue())
+    embed = discord.Embed(
+        title="Tout les résultats (" + str(nbFolder) + " dossiers pour " + str(nbScreen) + " screens)",
+        description=result, color=discord.Color.blue())
     await ctx.send(embed=embed)
 
 
 @client.command()
 async def searchAll(ctx):
+    nbFolder = 0
+    nbScreen = 0
     result = ""
     for folderName in os.listdir(destFolder):
         folder = os.path.join(destFolder, folderName)
         if os.path.isdir(folder):
+            nbFolder += 1
+            nbScreen += len([name for name in os.listdir(destFolder + folderName)])
             result = result + "-    " + folderName + " (" + str(
                 len([name for name in os.listdir(destFolder + folderName)])) + ")\n"
     if result == "":
         result = "Aucun résultat trouvé"
-    embed = discord.Embed(title="Tout les résultats", description=result, color=discord.Color.blue())
+    embed = discord.Embed(
+        title="Tout les résultats (" + str(nbFolder) + " dossiers pour " + str(nbScreen) + " screens)",
+        description=result, color=discord.Color.blue())
     await ctx.send(embed=embed)
 
 
