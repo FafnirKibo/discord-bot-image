@@ -23,12 +23,17 @@ class Send(commands.Cog):
     async def send(self, ctx, userID, nbImage, *, animeName):
         titre = "Envoie d'un screen de " + animeName
         destination = destFolder + animeName + separator
+        count = len([name for name in os.listdir(destination)])
+        if count > 999:
+            digits = 4
+        else:
+            digits = 3
         user = self.client.get_user(userID) or await self.client.fetch_user(userID)
 
         # On regarde si une image existe pour l'anime
         if os.path.exists(destination):
             # Récupération de l'image
-            imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+            imageName = animeName + " - " + str(nbImage).zfill(digits) + ".png"
             if os.path.exists(destination + imageName):
                 # Envoie de l'image
                 await user.send(animeName + " " + nbImage + " :")
@@ -44,12 +49,17 @@ class Send(commands.Cog):
         titre = "Envoie des screens de " + animeName + " à partir du " + nbImage
         await sendEmbed(ctx, titre, "Début de l'envoie")
         destination = destFolder + animeName + separator
+        count = len([name for name in os.listdir(destination)])
+        if count > 999:
+            digits = 4
+        else:
+            digits = 3
         user = self.client.get_user(userID) or await self.client.fetch_user(userID)
 
         # On regarde si une image existe pour l'anime
         if os.path.exists(destination):
             # Récupération de l'image
-            imageName = animeName + " - " + str(nbImage).zfill(3) + ".png"
+            imageName = animeName + " - " + str(nbImage).zfill(digits) + ".png"
             if os.path.exists(destination + imageName):
                 # Création du ZIP
                 archiveName = animeName + "_" + user.name + ".zip"
@@ -61,14 +71,14 @@ class Send(commands.Cog):
                 await sendEmbed(ctx, "Screen '" + imageName + "' bien envoyé à " + user.name, "")
                 # On continue à envoyer si il en reste
                 count = int(nbImage) + 1
-                imageName = animeName + " - " + str(count).zfill(3) + ".png"
+                imageName = animeName + " - " + str(count).zfill(digits) + ".png"
                 while os.path.exists(destination + imageName):
                     await user.send(file=discord.File(destination + imageName))
                     # Ajout de l'image à l'archive
                     zipObj.write(destination + imageName, arcname=imageName)
                     await sendEmbed(ctx, "Screen '" + imageName + "' bien envoyé à " + user.name, "")
                     count += 1
-                    imageName = animeName + " - " + str(count).zfill(3) + ".png"
+                    imageName = animeName + " - " + str(count).zfill(digits) + ".png"
                 zipObj.close()
                 await sendEmbed(ctx, titre, "Fin de l'envoie")
                 await self.saveDropbox(ctx, archiveName, user)
@@ -82,12 +92,17 @@ class Send(commands.Cog):
         titre = "Envoie des screens de " + animeName + " du " + nbImageFrom + " au " + nbImageTo
         await sendEmbed(ctx, titre, "Début de l'envoie")
         destination = destFolder + animeName + separator
+        count = len([name for name in os.listdir(destination)])
+        if count > 999:
+            digits = 4
+        else:
+            digits = 3
         user = self.client.get_user(userID) or await self.client.fetch_user(userID)
 
         # On regarde si une image existe pour l'anime
         if os.path.exists(destination):
             # Récupération de l'image
-            imageName = animeName + " - " + str(nbImageFrom).zfill(3) + ".png"
+            imageName = animeName + " - " + str(nbImageFrom).zfill(digits) + ".png"
             if os.path.exists(destination + imageName):
                 # Création du ZIP
                 archiveName = animeName + "_" + user.name + ".zip"
@@ -100,14 +115,14 @@ class Send(commands.Cog):
                 await sendEmbed(ctx, "Screen '" + imageName + "' bien envoyé à " + user.name, "")
                 # On continue à envoyer si il en reste
                 count = int(nbImageFrom) + 1
-                imageName = animeName + " - " + str(count).zfill(3) + ".png"
+                imageName = animeName + " - " + str(count).zfill(digits) + ".png"
                 while os.path.exists(destination + imageName) and count <= int(nbImageTo):
                     await user.send(file=discord.File(destination + imageName))
                     # Ajout de l'image à l'archive
                     zipObj.write(destination + imageName, arcname=imageName)
                     await sendEmbed(ctx, "Screen '" + imageName + "' bien envoyé à " + user.name, "")
                     count += 1
-                    imageName = animeName + " - " + str(count).zfill(3) + ".png"
+                    imageName = animeName + " - " + str(count).zfill(digits) + ".png"
                 zipObj.close()
                 await sendEmbed(ctx, titre, "Fin de l'envoie")
                 await self.saveDropbox(ctx, archiveName, user)

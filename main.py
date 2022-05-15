@@ -26,6 +26,7 @@ async def sendEmbed(ctx, title, description):
     embed = discord.Embed(title=title, description=description, color=discord.Color.blue())
     await ctx.send(embed=embed)
 
+
 async def showPagination(ctx, embeds):
     paginator = DiscordUtils.Pagination.CustomEmbedPaginator(ctx, remove_reactions=True)
     paginator.add_reaction('⏮️', "first")

@@ -1,6 +1,5 @@
 import os
 
-import DiscordUtils
 import discord
 from discord.ext import commands
 
